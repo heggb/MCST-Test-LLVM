@@ -1,0 +1,30 @@
+CC      := clang
+CFLAGS  := -std=c11 -Wall -Wextra -Wpedantic -Werror -Iinclude \
+           -g3 -O0 -fno-omit-frame-pointer
+LDFLAGS := 
+TARGET  := prog_debug
+SRCDIR  := src
+OBJDIR  := obj_debug
+INCDIR  := include
+
+SRCS := $(wildcard $(SRCDIR)/*.c)
+OBJS := $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
+DEPFILES := $(OBJS:.o=.d)
+
+.PHONY: all clean
+
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.c | $(OBJDIR)
+	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+
+clean:
+	rm -rf $(OBJDIR) $(TARGET)
+
+-include $(DEPFILES)

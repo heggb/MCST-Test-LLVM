@@ -1,0 +1,35 @@
+CC      := clang
+CFLAGS  := -std=c11 -Wall -Wextra -Wpedantic -Werror -Iinclude \
+           -g3 -O0 -fno-omit-frame-pointer \
+           -fsanitize=address,undefined \
+           -fsanitize-address-use-after-scope
+LDFLAGS := -fsanitize=address,undefined
+TARGET  := prog_asan
+SRCDIR  := src
+OBJDIR  := obj_asan
+INCDIR  := include
+
+SRCS := $(wildcard $(SRCDIR)/*.c)
+OBJS := $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
+DEPFILES := $(OBJS:.o=.d)
+
+.PHONY: all clean leak-check
+
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.c | $(OBJDIR)
+	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+
+clean:
+	rm -rf $(OBJDIR) $(TARGET)
+
+leak-check: all
+	ASAN_OPTIONS=detect_leaks=1 ./$(TARGET)
+
+-include $(DEPFILES)

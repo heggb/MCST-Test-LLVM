@@ -1,0 +1,27 @@
+CC      = gcc
+CFLAGS  = -Wall -Wextra -g -O3 -Iinclude -MMD
+LDFLAGS = 
+TARGET  = prog_rel
+SRCDIR  = src
+OBJDIR  = obj_rel
+INCDIR  = include
+
+SRCS = $(wildcard $(SRCDIR)/*.c)
+OBJS = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
+DEPFILES = $(OBJS:.o=.d)
+
+.PHONY: all clean
+
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.c | $(OBJDIR)
+	$(CC) $(CFLAGS) -c $< -o $@  
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)  
+
+clean:
+	rm -rf $(OBJDIR) $(TARGET)
+
+-include $(DEPFILES)
